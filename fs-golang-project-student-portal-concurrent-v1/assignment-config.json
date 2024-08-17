@@ -1,0 +1,16 @@
+{
+	"name": "fs-golang-project-student-portal-concurrent",
+	"course": "Basic Backend Development with Golang",
+	"title": "Advanced Student Portal: Concurrent Request Handling",
+	"order": 200,
+	"topics": [
+		"golang",
+		"concurrency"
+	],
+	"image": "golang-basic",
+	"command": "go test",
+	"totalTestCase": 19,
+	"metadata": {
+		"type": "assignment"
+	}
+}

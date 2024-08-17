@@ -1,0 +1,15 @@
+{
+	"name": "fs-golang-project-student-portal-basic",
+	"course": "Basic Backend Development with Golang",
+	"title": "Basic Student Portal",
+	"order": 2,
+	"topics": [
+		"golang"
+	],
+	"image": "golang-basic",
+	"command": "go test",
+	"totalTestCase": 16,
+	"metadata": {
+		"type": "assignment"
+	}
+}
