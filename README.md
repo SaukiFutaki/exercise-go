@@ -4,6 +4,6 @@
       \_/_)
        _|_
 
-    HALO! SAYA SEDANG BELAJAR GOLANG!
+  HALO GAIS!!! APA KABAR KALIAN SEMUA ? SEMOGA BAIK BAIK SAJA Y
 
     Cluck! 🐔📚
