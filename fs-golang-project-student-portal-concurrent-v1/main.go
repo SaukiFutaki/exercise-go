@@ -1,6 +1,8 @@
 package main
 
 import (
+	"a21hc3NpZ25tZW50/helper"
+	"a21hc3NpZ25tZW50/model"
 	"bufio"
 	"encoding/csv"
 	"fmt"
@@ -10,8 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"a21hc3NpZ25tZW50/helper"
-	"a21hc3NpZ25tZW50/model"
 )
 
 type StudentManager interface {
@@ -28,7 +28,6 @@ type InMemoryStudentManager struct {
 	//add map for tracking login attempts here
 	// TODO: answer here
 	failedLoginAttempts map[string]int
-
 }
 
 func NewInMemoryStudentManager() *InMemoryStudentManager {
@@ -71,7 +70,7 @@ func ReadStudentsFromCSV(filename string) ([]model.Student, error) {
 	defer file.Close()
 
 	reader := csv.NewReader(file)
-	reader.FieldsPerRecord = 3 
+	reader.FieldsPerRecord = 3
 
 	var students []model.Student
 	for {
@@ -96,42 +95,41 @@ func ReadStudentsFromCSV(filename string) ([]model.Student, error) {
 func (sm *InMemoryStudentManager) GetStudents() []model.Student {
 	// return nil // TODO: replace this
 	sm.Lock()
-    defer sm.Unlock()
-    return sm.students
+	defer sm.Unlock()
+	return sm.students
 }
 
 func (sm *InMemoryStudentManager) Login(id string, name string) (string, error) {
 	// return "", nil // TODO: replace this
 	sm.Lock()
-    defer sm.Unlock()
+	defer sm.Unlock()
 
 	if _, exists := sm.failedLoginAttempts[id]; !exists {
-        sm.failedLoginAttempts[id] = 0
-    }
+		sm.failedLoginAttempts[id] = 0
+	}
 
-    for _, student := range sm.students {
-        if student.ID == id {
-            if student.Name == name {
-                
-                sm.failedLoginAttempts[id] = 0
-                return fmt.Sprintf("Login berhasil: Selamat datang %s! Kamu terdaftar di program studi: %s", name, sm.studentStudyPrograms[student.StudyProgram]), nil
-            }
-         
-            sm.failedLoginAttempts[id]++
-            if sm.failedLoginAttempts[id] > 3 {
-                return "", fmt.Errorf("Login gagal: Batas maksimum login terlampaui")
-            }
-            return "", fmt.Errorf("Login gagal: data mahasiswa tidak ditemukan")
-        }
-    }
+	for _, student := range sm.students {
+		if student.ID == id {
+			if student.Name == name {
 
-    
-    sm.failedLoginAttempts[id]++
-    if sm.failedLoginAttempts[id] > 3 {
-        return "", fmt.Errorf("Login gagal: Batas maksimum login terlampaui")
-    }
+				sm.failedLoginAttempts[id] = 0
+				return fmt.Sprintf("Login berhasil: Selamat datang %s! Kamu terdaftar di program studi: %s", name, sm.studentStudyPrograms[student.StudyProgram]), nil
+			}
 
-    return "", fmt.Errorf("Login gagal: data mahasiswa tidak ditemukan")
+			sm.failedLoginAttempts[id]++
+			if sm.failedLoginAttempts[id] > 3 {
+				return "", fmt.Errorf("Login gagal: Batas maksimum login terlampaui")
+			}
+			return "", fmt.Errorf("Login gagal: data mahasiswa tidak ditemukan")
+		}
+	}
+
+	sm.failedLoginAttempts[id]++
+	if sm.failedLoginAttempts[id] > 3 {
+		return "", fmt.Errorf("Login gagal: Batas maksimum login terlampaui")
+	}
+
+	return "", fmt.Errorf("Login gagal: data mahasiswa tidak ditemukan")
 }
 
 func (sm *InMemoryStudentManager) RegisterLongProcess() {
@@ -149,69 +147,68 @@ func (sm *InMemoryStudentManager) Register(id string, name string, studyProgram 
 
 	// return "", nil // TODO: replace this
 	sm.RegisterLongProcess()
-    sm.Lock()
-    defer sm.Unlock()
-
+	sm.Lock()
+	defer sm.Unlock()
 
 	if id == "" || name == "" || studyProgram == "" {
-        return "", fmt.Errorf("ID, Name or StudyProgram is undefined!", )
-    }
+		return "", fmt.Errorf("ID, Name or StudyProgram is undefined!")
+	}
 
-    for _, student := range sm.students {
-        if student.ID == id {
-            return "", fmt.Errorf("Registrasi gagal: id sudah digunakan")
-        }
-    }
+	for _, student := range sm.students {
+		if student.ID == id {
+			return "", fmt.Errorf("Registrasi gagal: id sudah digunakan")
+		}
+	}
 
-    if _, exists := sm.studentStudyPrograms[studyProgram]; exists {
-        newStudent := model.Student{
-            ID:           id,
-            Name:         name,
-            StudyProgram: studyProgram,
-        }
-        sm.students = append(sm.students, newStudent)
-		return fmt.Sprint("Registrasi berhasil: ", name + " " +  "(" +studyProgram + ")"), nil
-    }
+	if _, exists := sm.studentStudyPrograms[studyProgram]; exists {
+		newStudent := model.Student{
+			ID:           id,
+			Name:         name,
+			StudyProgram: studyProgram,
+		}
+		sm.students = append(sm.students, newStudent)
+		return fmt.Sprint("Registrasi berhasil: ", name+" "+"("+studyProgram+")"), nil
+	}
 
-    return "", fmt.Errorf("Study program ABC is not found")
+	return "", fmt.Errorf("Study program ABC is not found")
 }
 
 func (sm *InMemoryStudentManager) GetStudyProgram(code string) (string, error) {
 	// return "", nil // TODO: replace this
 	sm.Lock()
-    defer sm.Unlock()
+	defer sm.Unlock()
 
-    if program, exists := sm.studentStudyPrograms[code]; exists {
-        return program, nil
-    }
-    return "", fmt.Errorf("invalid study program code")
+	if program, exists := sm.studentStudyPrograms[code]; exists {
+		return program, nil
+	}
+	return "", fmt.Errorf("invalid study program code")
 }
 
 func (sm *InMemoryStudentManager) ModifyStudent(name string, fn model.StudentModifier) (string, error) {
 	// return "", nil // TODO: replace this
 	sm.Lock()
-    defer sm.Unlock()
+	defer sm.Unlock()
 
-    for i, student := range sm.students {
-        if student.Name == name {
-            err := fn(&sm.students[i])
-            if err != nil {
-                return "", err
-            }
-            return fmt.Sprint("Program studi mahasiswa berhasil diubah."), nil
-        }
-    }
-    return "", fmt.Errorf("student not found")
+	for i, student := range sm.students {
+		if student.Name == name {
+			err := fn(&sm.students[i])
+			if err != nil {
+				return "", err
+			}
+			return fmt.Sprint("Program studi mahasiswa berhasil diubah."), nil
+		}
+	}
+	return "", fmt.Errorf("student not found")
 }
 
 func (sm *InMemoryStudentManager) ChangeStudyProgram(programStudi string) model.StudentModifier {
 	return func(s *model.Student) error {
 		if _, exists := sm.studentStudyPrograms[programStudi]; exists {
-            s.StudyProgram = programStudi
-            return nil
+			s.StudyProgram = programStudi
+			return nil
 
-        }
-        return fmt.Errorf("invalid study program")
+		}
+		return fmt.Errorf("invalid study program")
 
 	}
 }
@@ -219,7 +216,7 @@ func (sm *InMemoryStudentManager) ChangeStudyProgram(programStudi string) model.
 func (sm *InMemoryStudentManager) ImportStudents(filenames []string) error {
 	// return nil // TODO: replace this
 	sm.Lock()
-    defer sm.Unlock()
+	defer sm.Unlock()
 
 	start := time.Now()
 
@@ -247,40 +244,33 @@ func (sm *InMemoryStudentManager) SubmitAssignmentLongProcess() {
 func (sm *InMemoryStudentManager) SubmitAssignments(numAssignments int) {
 	start := time.Now()
 
-	
 	jobQueue := make(chan int, numAssignments)
 
 	worker := func(id int, jobs <-chan int, wg *sync.WaitGroup) {
 		defer wg.Done()
 		for job := range jobs {
 			fmt.Printf("Goroutine %d processing assignment %d\n", id, job)
-			sm.SubmitAssignmentLongProcess() 
+			sm.SubmitAssignmentLongProcess()
 		}
 	}
 
-	
 	var wg sync.WaitGroup
 
-	
 	for i := 1; i <= 3; i++ {
 		wg.Add(1)
 		go worker(i, jobQueue, &wg)
 	}
 
-	
 	for i := 1; i <= numAssignments; i++ {
 		jobQueue <- i
 	}
-	close(jobQueue) 
+	close(jobQueue)
 
-	
 	wg.Wait()
 
 	elapsed := time.Since(start)
 	fmt.Printf("Submitting %d assignments took %s\n", numAssignments, elapsed)
 }
-
-
 
 func main() {
 	manager := NewInMemoryStudentManager()
